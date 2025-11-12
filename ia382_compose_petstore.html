@@ -257,16 +257,20 @@ header {
     
     /* --- Responsiveness --- */
     @media (max-width: 980px){ 
-      .wrap{ grid-template-columns:1fr;} 
+      .grid { grid-template-columns:1fr;} 
       .toc {
-        /* Make it a horizontal scroller on tablet */
         position: relative; top: 0;
         overflow-x: auto;
         white-space: nowrap;
         padding: 8px;
+        
+        /* --- CORREÇÃO AQUI --- */
+        /* Permite que o scroll vertical (pan-y) funcione na página, 
+           enquanto o scroll horizontal (pan-x) funciona no elemento. */
+        touch-action: pan-x pan-y; 
       }
-      .toc h3 { display: none; } /* Hide title */
-      .toc a { display: inline-block; padding: 6px 10px; } /* Make them horizontal */
+      .toc h3 { display: none; }
+      .toc a { display: inline-block; padding: 6px 10px; }
     }
     @media (max-width: 600px) {
       header { padding: 70px 15px 50px; }
