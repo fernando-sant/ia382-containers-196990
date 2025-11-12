@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <title>IA382 – Practical Tutorials | Installing Docker (Windows · macOS · Ubuntu)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="IA382 Practical Tutorials: How to install Docker on Windows, macOS and Ubuntu.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg:#0e1628;
+      --text:#e6ecf5;
+      --muted:#aab6ce;
+      --accent:#00ade1;
+      --card:#18233a;
+      --border:rgba(255,255,255,0.1);
+      --ok:#35d399;
+      --warn:#f6c445;
+      --radius:14px;
+      /* Added shadows */
+      --shadow-color: rgba(0, 0, 0, 0.2);
+      --shadow-color-hover: rgba(0, 0, 0, 0.3);
+    }
+    [data-theme="light"] {
+      --bg:#f9fbff;
+      --text:#1a1f29;
+      --muted:#5b6b86;
+      --accent:#0077cc;
+      --card:#ffffff;
+      --border:rgba(0,0,0,0.1);
+      /* Added shadows */
+      --shadow-color: rgba(0, 0, 0, 0.07);
+      --shadow-color-hover: rgba(0, 0, 0, 0.12);
+    }
+    html { scroll-behavior:smooth; }
+    body {
+      overflow-wrap: break-word;
+      word-wrap: break-word;
+      word-break: break-word;
+      white-space: normal;
+      margin:0;
+      font-family:'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      line-height:1.6;
+      transition: background 0.3s, color 0.3s;
+      padding-top:60px;
+      font-feature-settings: "tnum" on, "lnum" on; /* Better numbers */
+    }
+    
+    /* --- Accessibility Focus --- */
+    a:focus-visible, 
+    button:focus-visible, 
+    [role="button"]:focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 2px;
+      box-shadow: 0 0 0 5px var(--bg); /* Creates a "cutout" effect */
+      border-radius: 4px; /* Match outline */
+    }
+    .toc a:focus-visible {
+      box-shadow: none; /* Already has a background */
+      border: 2px solid var(--accent);
+      outline: none;
+    }
+    /* Container para a logo e o texto */
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 12px; /* Espaço entre a logo e o texto */
+    }
+    
+    /* Estilo do Logo: Adequado e Adaptável */
+    .logo {
+      max-height: 40px; /* Altura máxima para caber na navbar de 60px */
+      width: auto;       /* Largura automática para manter proporção */
+      object-fit: contain; /* Garante que a imagem caiba sem distorcer */
+    }
+    .navbar {
+      position:fixed; inset:0 0 auto 0;
+      height:60px; display:flex; justify-content:space-between; align-items:center;
+      padding:0 20px;
+      background:rgba(10,15,25,0.8); backdrop-filter:blur(8px);
+      border-bottom:1px solid var(--border); z-index:100;
+    }
+    .navbar span { font-weight:700; letter-spacing:0.5px; transition: color 0.2s; }
+    .navbar span:hover { color: var(--accent); } /* Added */
+    
+    /* Scroll Progress Bar */
+    .progress-bar { 
+      position: absolute; 
+      bottom: -1px; 
+      left: 0; 
+      height: 3px; 
+      background: var(--accent); 
+      width: 0%; 
+      z-index: 101; 
+      transition: width 0.05s linear; 
+      box-shadow: 0 0 8px var(--accent);
+    }
+    
+    .theme-btn {
+      background:none; border:1px solid var(--border);
+      color:var(--text); border-radius:8px; padding:6px 10px;
+      cursor:pointer; transition:0.2s;
+    }
+    .theme-btn:hover { background:var(--accent); color:#fff; border-color:var(--accent); }
+
+    header {
+      position:relative; text-align:center; padding:90px 20px 70px; color:white; background:#0b1220; isolation:isolate;
+    }
+    header::before {
+      content:""; position:absolute; inset:0;
+      background: linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.8)),
+                  url('https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1920&auto=format&fit=crop') center/cover no-repeat;
+      z-index:-1; transform:scale(1.02); filter:saturate(1.05);
+    }
+    header h1 { 
+      margin:0 0 8px 0; 
+      font-size:2.8rem; /* Increased */
+      font-weight:700; 
+      letter-spacing:-0.5px; /* Tightened */
+    }
+    header p { 
+      margin:10px auto 0; 
+      max-width:820px; 
+      color:#cfd9e7; 
+      font-size:1.1rem; /* Increased */
+    }
+
+    /* Layout with TOC */
+    .wrap { max-width:1120px; margin:36px auto; padding:0 20px 40px; }
+    .grid { display:grid; grid-template-columns:280px 1fr; gap:24px; }
+
+    /* TOC */
+    .toc { position:sticky; top:84px; align-self:start; background:var(--card); border:1px solid var(--border);
+      border-radius:var(--radius); padding:14px; }
+    .toc h3 { margin:.2rem 0 .6rem; font-size:13px; text-transform:uppercase; letter-spacing:.12em; color:var(--muted); }
+    .toc a { 
+      display:block; padding:.35rem .55rem; border-radius:8px; color:var(--text); opacity:.95; text-decoration:none;
+      transition: background 0.2s ease, color 0.2s ease; /* Added */
+    }
+    /* Prominent Active State */
+    .toc a.active { 
+      background: var(--accent);
+      color: #fff;
+      font-weight: 600;
+      box-shadow: 0 2px 10px rgba(0, 173, 225, 0.3);
+    }
+    [data-theme="light"] .toc a.active {
+      color: #fff;
+      box-shadow: 0 2px 10px rgba(0, 119, 204, 0.3);
+    }
+    .toc a:hover { background:rgba(255,255,255,0.08); }
+
+    /* Content */
+    .content > section { margin-bottom:28px; }
+    h2 { 
+      border-bottom:2px solid var(--accent); 
+      padding-bottom:6px; /* Increased */
+      margin-top:48px; /* Increased */
+      font-size: 2.0rem; /* Increased */
+    }
+    h3 { 
+      margin-top:32px; /* Increased */
+      font-size: 1.4rem; /* Increased */
+    }
+
+    .card, .infobox {
+      background:var(--card); border:1px solid var(--border);
+      border-radius:var(--radius); 
+      padding:18px 22px; 
+      margin:24px 0; /* Increased */
+      /* Added shadows */
+      box-shadow: 0 4px 14px var(--shadow-color);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+    }
+    .card:hover, .infobox:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 7px 20px var(--shadow-color-hover);
+    }
+    
+    /* Infobox Icons */
+    .infobox {
+      padding-left: 52px; /* Make space for icon */
+    }
+    .infobox::before {
+      content: '';
+      display: block;
+      font-size: 1.5rem;
+      font-weight: 700;
+      position: absolute;
+      left: 20px;
+      top: 18px;
+    }
+    .infobox.good { border-left:4px solid var(--ok); }
+    .infobox.good::before { content: '✓'; color: var(--ok); }
+    
+    .infobox.warn { border-left:4px solid var(--warn); }
+    .infobox.warn::before { content: '⚠'; color: var(--warn); }
+    
+    .infobox.info { border-left:4px solid var(--accent); }
+    .infobox.info::before { content: 'ℹ'; color: var(--accent); }
+    
+    .callout-title { font-weight:700; margin-bottom:8px; }
+
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      background:var(--bg); border-radius:8px; padding:14px 16px; /* Increased */
+      overflow-x:auto; position:relative; border:1px solid var(--border);
+      border-left: 4px solid var(--accent); /* Added */
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15); /* Added */
+    }
+    [data-theme="light"] pre { background: #fdfdfd; }
+    
+    pre > code { background: transparent; padding: 0; border-radius: 0; }
+    code {
+      font-family:ui‑monospace, SFMono‑Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+      background:rgba(255,255,255,0.05); padding:2px 4px; border-radius:4px;
+    }
+    .copy-btn {
+      position:absolute; right:8px; top:8px;
+      font-size:12px; border:1px solid var(--border);
+      border-radius:8px; padding:4px 8px;
+      background:transparent; color:var(--text); cursor:pointer;
+      transition: background 0.2s, transform 0.2s, border-color 0.2s; /* Added */
+    }
+    .copy-btn:hover { background:var(--accent); color:#fff; border-color:var(--accent); }
+    /* Copy Feedback */
+    .copy-btn.copied {
+      background: #00d084; 
+      color: #fff; 
+      border-color: #00d084; 
+      transform: scale(1.05);
+    }
+
+    /* Paginator */
+    .pager {
+      display:flex; justify-content:space-between; gap:12px; margin-top:36px;
+    }
+    .pager a {
+      flex:1; display:flex; align-items:center; justify-content:center;
+      padding:14px; border:1px solid var(--border); border-radius:12px; text-decoration:none; color:var(--text);
+      background:var(--card);
+      transition: border-color 0.2s, transform 0.2s; /* Added */
+    }
+    .pager a:hover { border-color:var(--accent); transform: translateY(-2px); }
+    .pager small { color:var(--muted); display:block; }
+
+    footer {
+      text-align:center; color:var(--muted); border-top:1px solid var(--border);
+      padding:30px 0 50px; margin-top:30px;
+    }
+    /* Container para a logo e o texto */
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 12px; /* Espaço entre a logo e o texto */
+    }
+    
+    /* Estilo do Logo: Adequado e Adaptável */
+    .logo {
+      max-height: 40px; /* Altura máxima para caber na navbar de 60px */
+      width: auto;       /* Largura automática para manter proporção */
+      object-fit: contain; /* Garante que a imagem caiba sem distorcer */
+    }
+    /* --- Scroll Animation --- */
+    @keyframes fadeInSlideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-on-scroll {
+      opacity: 0; /* Start hidden */
+    }
+    .animate-on-scroll.in-view {
+      animation: fadeInSlideUp 0.6s ease-out forwards;
+    }
+    
+    /* --- Responsiveness --- */
+    @media (max-width: 980px){ 
+      .grid { grid-template-columns: 1fr; }
+      .toc {
+        /* Make it a horizontal scroller on tablet */
+        position: relative; top: 0;
+        overflow-x: auto;
+        white-space: nowrap;
+        padding: 8px;
+      }
+      .toc h3 { display: none; } /* Hide title */
+      .toc a { display: inline-block; padding: 6px 10px; } /* Make them horizontal */
+    }
+    @media (max-width: 600px) {
+      header { padding: 70px 15px 50px; }
+      header h1 { font-size: 2.2rem; }
+      header p { font-size: 1rem; }
+      .wrap { margin: 24px auto; padding: 0 15px 30px; }
+      .infobox { padding: 16px 18px 16px 48px; } /* Adjust for icon */
+      .infobox::before { left: 15px; top: 16px; }
+      .pager { flex-direction: column; }
+    }
+    
+  </style>
+</head>
+
+<body>
+  <nav class="navbar" aria-label="Primary">
+<div class="logo-container">
+        <img src="logo.png" alt="Logo" class="logo">
+        
+        <span>FEEC/UNICAMP · IA382 Practical Tutorials</span>
+    </div>
+    <button class="theme-btn" id="theme-toggle" aria-label="Toggle theme">🌓 Theme</button>
+  </nav>
+
+  <header>
+    <h1>Installing Docker (Windows · macOS · Ubuntu)</h1>
+    <p>This tutorial guides you through installing Docker on Windows (Docker Desktop + WSL 2), macOS, and Ubuntu Linux. All steps are based on the official Docker documentation.</p>
+  </header>
+
+  <div class="wrap grid">
+    <aside class="toc" aria-label="On this page">
+      <h3>On this page</h3>
+      <nav id="toc-list"></nav>
+    </aside>
+
+    <main class="content" id="content">
+
+      <section id="windows">
+        <h2>Windows</h2>
+        <p>Install Docker Desktop for Windows (requires WSL 2 or Hyper‑V). See the official guide at
+          <a href="https://docs.docker.com/desktop/setup/install/windows-install/" target="_blank" rel="noopener noreferrer">Docker Docs · Windows install</a>.
+        </p>
+
+        <div class="infobox info">
+          <div class="callout-title">Prerequisites</div>
+          <ul>
+            <li>Windows 10 64‑bit (Pro/Enterprise/Education) build 19045+ or Windows 11 64‑bit build 22631+.</li>
+            <li>WSL 2 backend (recommended) or Hyper‑V; virtualization enabled in BIOS/UEFI.</li>
+            <li>4 GB of RAM (or more).</li>
+          </ul>
+        </div>
+
+        <h3>Installation steps</h3>
+        <ol>
+          <li>Download the installer from <a href="https://docs.docker.com/desktop/setup/install/windows-install/" target="_blank" rel="noopener noreferrer">Docker Docs</a>.</li>
+          <li>Run the <code>.exe</code> installer and follow the wizard.</li>
+          <li>If prompted, enable WSL 2 and install a Linux distro (e.g., Ubuntu). Restart when requested.</li>
+          <li>Open “Docker Desktop” from the Start menu.</li>
+          <li>Verify the installation:</li>
+        </ol>
+        <pre><button class="copy-btn" aria-label="Copy command">Copy</button><code>docker --version
+docker compose version</code></pre>
+
+        <div class="infobox good">
+          <div class="callout-title">Tip</div>
+          <p>In Settings → General, check “Start Docker Desktop when you log in”.</p>
+        </div>
+      </section>
+
+      <section id="macos">
+        <h2>macOS</h2>
+        <p>Install Docker Desktop for macOS — compatible with Intel x86‑64 and Apple Silicon. Official guide:
+          <a href="https://docs.docker.com/desktop/setup/install/mac-install/" target="_blank" rel="noopener noreferrer">Docker Docs · Mac install</a>.
+        </p>
+
+        <div class="infobox info">
+          <div class="callout-title">Prerequisites</div>
+          <ul>
+            <li>macOS current version or one previous version.</li>
+            <li>≥ 4 GB of RAM.</li>
+          </ul>
+        </div>
+
+        <h3>Installation steps</h3>
+        <ol>
+          <li>Download the <code>.dmg</code> from <a href="https://docs.docker.com/desktop/setup/install/mac-install/" target="_blank" rel="noopener noreferrer">Docker Docs</a>.</li>
+          <li>Open the <code>.dmg</code> and drag the Docker icon to **Applications**.</li>
+          <li>Open **Docker.app**; accept permissions and the usage agreement.</li>
+          <li>Verify in the Terminal:</li>
+        </ol>
+        <pre><button class="copy-btn" aria-label="Copy command">Copy</button><code>docker --version
+docker compose version</code></pre>
+
+        <div class="infobox good">
+          <div class="callout-title">Note</div>
+          <p>On Apple Silicon, containers run in a lightweight VM — performance is usually excellent.</p>
+        </div>
+      </section>
+
+      <section id="ubuntu">
+        <h2>Ubuntu Linux</h2>
+        <p>You can install Docker Engine (command line) or Docker Desktop (GUI) on Ubuntu.
+          Official guide: <a href="https://docs.docker.com/desktop/setup/install/linux/ubuntu/" target="_blank" rel="noopener noreferrer">Docker Docs · Ubuntu</a>.
+        </p>
+
+        <div class="infobox info">
+          <div class="callout-title">Prerequisites</div>
+          <ul>
+            <li>Ubuntu 22.04 LTS (or newer) recommended.</li>
+            <li>User with <code>sudo</code> privileges.</li>
+          </ul>
+        </div>
+
+        <h3>Installation steps (Docker Engine)</h3>
+        <ol>
+          <li>Update packages:</li>
+          <pre><button class="copy-btn" aria-label="Copy command">Copy</button><code>sudo apt update && sudo apt upgrade -y</code></pre>
+
+          <li>Dependencies for APT via HTTPS:</li>
+          <pre><button class="copy-btn" aria-label="Copy command">Copy</button><code>sudo apt install -y ca-certificates curl gnupg lsb-release</code></pre>
+
+          <li>Add the Docker GPG key and official repository:</li>
+          <pre><button class="copy-btn" aria-label="Copy command">Copy</button><code>curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list >/dev/null</code></pre>
+
+          <li>Install the Docker Engine:</li>
+          <pre><button class="copy-btn" aria-label="Copy command">Copy</button><code>sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io</code></pre>
+
+          <li>Verify the installation:</li>
+          <pre><button class="copy-btn" aria-label="Copy command">Copy</button><code>docker --version
+sudo docker run hello-world</code></pre>
+
+          <li>(Optional) Use Docker without <code>sudo</code>:</li>
+          <pre><button class="copy-btn" aria-label="Copy command">Copy</button><code>sudo usermod -aG docker ${USER}
+# log out and log back in</code></pre>
+        </ol>
+
+        <div class="infobox good">
+          <div class="callout-title">Tip</div>
+          <p>To install Docker Desktop on Ubuntu via <code>.deb</code> package, see
+            <a href="https://docs.docker.com/desktop/setup/install/linux/ubuntu/" target="_blank" rel="noopener noreferrer">Docker Docs · Ubuntu</a>.
+          </p>
+        </div>
+      </section>
+
+      <section id="verification">
+        <h2>Verification & Next steps</h2>
+        <ul>
+          <li>Test a container:</li>
+          <pre><button class="copy-btn" aria-label="Copy command">Copy</button><code>docker run --rm hello-world</code></pre>
+          <li>Verify Compose V2:</li>
+          <pre><button class="copy-btn" aria-label="Copy command">Copy</button><code>docker compose version</code></pre>
+          <li>Next: review <a href="ia382_running_containers.html">01 · Running containers</a> or advance to <a href="ia382_tripmeal.html">TripMeal Lab</a>.</li>
+        </ul>
+      </section>
+
+      <div class="pager">
+        <a href="index.html" aria-label="Previous tutorial">
+          <div>
+            <small>← Previous</small>
+            <div>Index</div>
+          </div>
+        </a>
+        <a href="ia382_running_containers.html" aria-label="Next tutorial">
+          <div>
+            <small>Next →</small>
+            <div>02 · Running Containers</div>
+          </div>
+        </a>
+      </div>
+
+    </main>
+  </div>
+
+  <footer>
+    <p>© <span id="year"></span> FEEC/UNICAMP · IA382 Practical Tutorials · Developed by: AI and Fernando Santiago</p>
+  </footer>
+
+  <script>
+    // Theme init using saved or system preference
+    (function initTheme(){
+      const root=document.documentElement;
+      const saved=localStorage.getItem('theme');
+      if(saved==='light' || saved==='dark'){
+        root.setAttribute('data-theme', saved);
+      } else {
+        const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+        root.setAttribute('data-theme', prefersLight ? 'light' : 'dark');
+      }
+      const btn=document.getElementById('theme-toggle');
+      const isLight = root.getAttribute('data-theme')==='light';
+      btn.textContent = isLight ? '🌙 Dark' : '☀️ Light';
+    })();
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+      const root=document.documentElement;
+      const current=root.getAttribute('data-theme');
+      const next = current==='light' ? 'dark' : 'light';
+      root.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      document.getElementById('theme-toggle').textContent = next==='light' ? '🌙 Dark' : '☀️ Light';
+    });
+
+    // Copy buttons (delegated)
+    document.addEventListener('click', async ev => {
+      const btn = ev.target.closest('.copy-btn'); if(!btn) return;
+      const pre = btn.parentElement; const code = pre.querySelector('code'); if(!code) return;
+      try {
+        await navigator.clipboard.writeText(code.innerText);
+        const old = btn.textContent; 
+        btn.textContent='Copied!'; 
+        btn.classList.add('copied'); // Added
+        setTimeout(()=> {
+          btn.textContent=old;
+          btn.classList.remove('copied'); // Removed
+        }, 1200);
+      } catch(e){ console.error(e); }
+    });
+
+    // Year
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // ====== TOC generator + Scroll Spy ======
+    (function makeTOC(){
+      const toc = document.getElementById('toc-list');
+      const content = document.getElementById('content');
+      if(!toc || !content) return; // Added guard
+      function slug(s){ return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''); }
+      const headings = content.querySelectorAll('h2, h3');
+      const links = []; // Store links for spy
+      headings.forEach(h => {
+        if(!h.id){ h.id = slug(h.textContent); }
+        const a = document.createElement('a');
+        a.href = '#'+h.id; a.textContent = h.textContent;
+        a.dataset.target = h.id;
+        toc.appendChild(a);
+        links.push(a); // Add to array
+      });
+      // Scroll spy
+      const map = new Map(links.map(a => [a.dataset.target, a]));
+      const obs = new IntersectionObserver(entries => {
+        let lastActive = null; // Track the last one that is intersecting
+        entries.forEach(e => {
+          const id = e.target.id;
+          const link = map.get(id);
+          if(!link) return;
+          if(e.isIntersecting){
+            link.classList.add('active');
+            lastActive = link;
+          } else {
+            link.classList.remove('active');
+          }
+        });
+        // De-activate all, then re-activate only the last one found
+        if(lastActive) {
+          links.forEach(l => l.classList.remove('active'));
+          lastActive.classList.add('active');
+        }
+      }, { rootMargin: '0px 0px -70% 0px', threshold: 0.1 });
+      headings.forEach(h => obs.observe(h));
+    })();
+    
+    // ====== Scroll Progress Bar (Added) ======
+    (function setupProgressBar() {
+      // Inject the bar element via JS
+      const bar = document.createElement('div');
+      bar.className = 'progress-bar';
+      const nav = document.querySelector('.navbar');
+      if(nav) nav.appendChild(bar);
+      
+      window.addEventListener('scroll', () => {
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        const percent = (window.scrollY / max) * 100;
+        bar.style.width = percent + '%';
+      }, { passive: true });
+    })();
+    
+    // ====== Scroll Animations (Added) ======
+    (function scrollAnimate() {
+      // Targets for this specific file
+      const targets = document.querySelectorAll('.infobox, .pager a, section > ul, section > p, section > ol');
+      if (!('IntersectionObserver' in window)) return; // Fail gracefully
+      
+      const obs = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('in-view');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+      
+      targets.forEach(t => {
+        t.classList.add('animate-on-scroll');
+        obs.observe(t);
+      });
+    })();
+    
+  </script>
+
+</body>
+</html>

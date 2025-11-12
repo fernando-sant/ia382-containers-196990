@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <title>IA382 – Practical Tutorials | TripMeal Lab</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="FEEC/UNICAMP IA382 – Practical Tutorials: TripMeal lab with Docker Compose and Kubernetes.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #0e1628;
+      --text: #e6ecf5;
+      --muted: #aab6ce;
+      --accent: #00ade1;
+      --card: #18233a;
+      --border: rgba(255, 255, 255, 0.1);
+      --shadow-color: rgba(0, 0, 0, 0.2);
+      --shadow-color-hover: rgba(0, 0, 0, 0.3);
+    }
+    [data-theme="light"] {
+      --bg: #f9fbff;
+      --text: #1a1f29;
+      --muted: #5b6b86;
+      --accent: #0077cc;
+      --card: #ffffff;
+      --border: rgba(0, 0, 0, 0.1);
+      --shadow-color: rgba(0, 0, 0, 0.07);
+      --shadow-color-hover: rgba(0, 0, 0, 0.12);
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      overflow-wrap: break-word;
+      word-wrap: break-word;
+      word-break: break-word;
+      white-space: normal;
+      margin: 0;
+      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      transition: background 0.3s, color 0.3s;
+      padding-top: 60px; /* space for fixed navbar */
+      font-feature-settings: "tnum" on, "lnum" on; /* Better numbers */
+    }
+
+    /* --- Accessibility Focus --- */
+    a:focus-visible, 
+    button:focus-visible, 
+    [role="button"]:focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 2px;
+      box-shadow: 0 0 0 5px var(--bg); /* Creates a "cutout" effect */
+      border-radius: 4px; /* Match outline */
+    }
+    /* Special case for TOC links */
+    .toc a:focus-visible {
+      box-shadow: none; /* Already has a background */
+      border: 2px solid var(--accent);
+      outline: none;
+    }
+
+    /* Navbar */
+    .navbar {
+      position: fixed;
+      inset: 0 0 auto 0;
+      height: 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 20px;
+      background: rgba(10, 15, 25, 0.8);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      border-bottom: 1px solid var(--border);
+    }
+    .navbar span {
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      transition: color 0.2s;
+    }
+    .navbar span:hover {
+      color: var(--accent);
+    }
+    .theme-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 6px 10px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .theme-btn:hover {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    /* Scroll Progress Bar */
+    .progress-bar { 
+      position: absolute; 
+      bottom: -1px; 
+      left: 0; 
+      height: 3px; 
+      background: var(--accent); 
+      width: 0%; 
+      z-index: 101; 
+      transition: width 0.05s linear; 
+      box-shadow: 0 0 8px var(--accent);
+    }
+
+    /* Header (hero) */
+    header {
+      position: relative;
+      text-align: center;
+      padding: 90px 20px 70px;
+      color: white;
+      overflow: hidden;
+      background: #0b1220;
+      isolation: isolate;
+    }
+    header::before {
+      content: "";
+      position: absolute; inset: 0;
+      background:
+        linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.8)),
+        url('https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1920&auto=format&fit=crop') center/cover no-repeat;
+      z-index: -1;
+      transform: scale(1.02);
+      filter: saturate(1.05);
+    }
+    header h1 {
+      margin: 0 0 8px 0;
+      font-size: 2.8rem; /* Increased */
+      font-weight: 700;
+      letter-spacing: -0.5px; /* Tightened */
+    }
+    header p {
+      margin: 10px auto 0;
+      max-width: 780px;
+      color: #cfd9e7;
+      font-size: 1.1rem; /* Increased */
+    }
+
+    /* Main content */
+    main { max-width: 980px; margin: 36px auto 0; padding: 0 20px 40px; }
+    
+    /* Typography & Spacing */
+    h2 { 
+      border-bottom: 2px solid var(--accent); 
+      padding-bottom: 6px; 
+      margin-top: 48px; /* Increased */
+      font-size: 2.0rem; /* Increased */
+    }
+    h3 { 
+      margin-top: 32px; /* Increased */
+      font-size: 1.4rem; /* Increased */
+    }
+    .section { margin: 40px 0; } /* Increased */
+
+    /* Cards & Boxes */
+    .exercise, .infobox {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 22px;
+      margin: 24px 0; /* Increased */
+      box-shadow: 0 4px 14px var(--shadow-color);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+    }
+    .exercise:hover, .infobox:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 7px 20px var(--shadow-color-hover);
+    }
+    
+    /* Infobox Icons */
+    .infobox {
+      padding-left: 52px; /* Make space for icon */
+    }
+    .infobox::before {
+      content: '';
+      display: block;
+      font-size: 1.5rem;
+      font-weight: 700;
+      position: absolute;
+      left: 20px;
+      top: 18px;
+    }
+    .infobox.good { border-left: 4px solid #00d084; }
+    .infobox.good::before { content: '✓'; color: #00d084; }
+    
+    .infobox.warn, .infobox.warning { border-left: 4px solid #f4c542; }
+    .infobox.warn::before, .infobox.warning::before { content: '⚠'; color: #f4c542; }
+
+    .infobox.info { border-left: 4px solid var(--accent); }
+    .infobox.info::before { content: 'ℹ'; color: var(--accent); }
+
+    /* Code Blocks */
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 14px 16px; /* Increased */
+      overflow-x: auto;
+      position: relative;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent); /* Added side border */
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15); /* Added depth */
+    }
+    [data-theme="light"] pre {
+      background: #fdfdfd; /* Slightly off-white */
+    }
+    
+    /* Remove default bg for code inside pre */
+    pre > code {
+      background: transparent;
+      padding: 0;
+      border-radius: 0;
+    }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+      background: rgba(255,255,255,0.05);
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+    .copy-btn {
+      position: absolute;
+      right: 8px; top: 8px;
+      font-size: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 4px 8px;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s, border-color 0.2s; /* Added transition */
+    }
+    .copy-btn:hover { background: var(--accent); color:#fff; border-color: var(--accent); }
+    /* Copy Feedback */
+    .copy-btn.copied {
+      background: #00d084; 
+      color: #fff; 
+      border-color: #00d084; 
+      transform: scale(1.05);
+    }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      padding: 30px 0 50px;
+      margin-top: 30px;
+    }
+
+    /* Simple callout titles */
+    .callout-title { font-weight: 700; margin-bottom: 8px; }
+  
+    /* --- TOC + Grid + Pager additions --- */
+    .wrap { max-width:1120px; margin:36px auto; padding:0 20px 40px; }
+    .grid { display:grid; grid-template-columns:280px 1fr; gap:24px; }
+    
+    .toc { position:sticky; top:84px; align-self:start; background:var(--card); border:1px solid var(--border);
+      border-radius:14px; padding:14px; }
+    .toc h3 { margin:.2rem 0 .6rem; font-size:13px; text-transform:uppercase; letter-spacing:.12em; color:var(--muted); }
+    .toc a { 
+      display:block; padding:.35rem .55rem; border-radius:8px; color:var(--text); opacity:.95; text-decoration:none; 
+      transition: background 0.2s ease, color 0.2s ease; /* Added transition */
+    }
+    .toc a:hover { background:rgba(255,255,255,0.08); }
+    
+    /* Prominent Active State */
+    .toc a.active { 
+      background: var(--accent);
+      color: #fff;
+      font-weight: 600;
+      box-shadow: 0 2px 10px rgba(0, 173, 225, 0.3);
+    }
+    [data-theme="light"] .toc a.active {
+      color: #fff;
+      box-shadow: 0 2px 10px rgba(0, 119, 204, 0.3);
+    }
+    /* Container para a logo e o texto */
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 12px; /* Espaço entre a logo e o texto */
+    }
+    
+    /* Estilo do Logo: Adequado e Adaptável */
+    .logo {
+      max-height: 40px; /* Altura máxima para caber na navbar de 60px */
+      width: auto;       /* Largura automática para manter proporção */
+      object-fit: contain; /* Garante que a imagem caiba sem distorcer */
+    }
+    .content > section { margin-bottom:28px; }
+    .pager { display:flex; justify-content:space-between; gap:12px; margin-top:36px; }
+    .pager a {
+      flex:1; display:flex; align-items:center; justify-content:center;
+      padding:14px; border:1px solid var(--border); border-radius:12px; text-decoration:none; color:var(--text);
+      background:var(--card);
+      transition: border-color 0.2s, transform 0.2s; /* Added transition */
+    }
+    .pager a:hover { 
+      border-color:var(--accent); 
+      transform: translateY(-2px);
+    }
+    .pager small { color:var(--muted); display:block; }
+
+    /* --- Scroll Animation --- */
+    @keyframes fadeInSlideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-on-scroll {
+      opacity: 0; /* Start hidden */
+    }
+    .animate-on-scroll.in-view {
+      animation: fadeInSlideUp 0.6s ease-out forwards;
+    }
+
+    /* --- Responsiveness --- */
+    @media (max-width: 980px){ 
+      .grid { grid-template-columns: 1fr; gap: 16px; } 
+      .toc {
+        /* Make it a horizontal scroller on tablet */
+        position: relative; top: 0;
+        overflow-x: auto;
+        white-space: nowrap;
+        padding: 8px;
+      }
+      .toc h3 { display: none; } /* Hide title */
+      .toc a { display: inline-block; padding: 6px 10px; } /* Make them horizontal */
+    }
+    @media (max-width: 600px) {
+      header { padding: 70px 15px 50px; }
+      header h1 { font-size: 2.2rem; }
+      header p { font-size: 1rem; }
+      main { padding: 0 15px 30px; }
+      .wrap { margin: 24px auto; padding: 0; }
+      .grid { padding: 0 15px 30px; }
+      .infobox { padding: 16px 18px 16px 48px; } /* Adjust for icon */
+      .infobox::before { left: 15px; top: 16px; }
+      .pager { flex-direction: column; }
+    }
+
+  </style>
+</head>
+
+<body>
+  
+<nav class="navbar" aria-label="Primary">
+    
+    <div class="logo-container">
+        <img src="logo.png" alt="Logo" class="logo">
+        
+        <span>FEEC/UNICAMP · IA382 Practical Tutorials</span>
+    </div>
+
+    <button class="theme-btn" id="theme-toggle" aria-label="Toggle theme">🌓 Theme</button>
+  </nav>
+
+  <header>
+    <h1>TripMeal Lab — Docker Compose & Kubernetes Activity</h1>
+    <p>Build and deploy a multi-service web application (TripMeal) using Docker Compose and Kubernetes (local & Azure). Follow the guided exercises and activities below.</p>
+  </header>
+
+  <div class="wrap grid">
+    <aside class="toc" aria-label="On this page">
+      <h3>On this page</h3>
+      <nav id="toc-list"></nav>
+    </aside>
+
+    <main class="content" id="content">
+    <section id="objectives" class="section">
+      <h2>Objectives</h2>
+      <p>In this lab assignment you will:</p>
+      <ul>
+        <li>Build and deploy a multi-service application with <strong>Docker Compose</strong>.</li>
+        <li>Deploy a multi-service application on a <strong>local Kubernetes cluster</strong>.</li>
+        <li>Deploy a multi-service application on a <strong>Kubernetes cluster</strong> in <strong>Microsoft Azure</strong>.</li>
+      </ul>
+    </section>
+
+    <section id="context" class="section">
+      <h2>Context</h2>
+      <p>We intend to build and deploy a Web application called <em>TripMeal</em> that lets users share their favorite recipes.
+      You can download the application <a href="./activities_files/tripmeal.zip">here</a>.
+      The source code has been readapted from
+      <a href="https://github.com/DanielAndreasen/TripMeal" target="_blank" rel="noopener noreferrer">this GitHub repository</a>.</p>
+      <p>The downloaded file is an archive. Extracting the archive will create a folder named <code>tripmeal_sujet</code>.</p>
+    </section>
+
+    <section id="compose" class="section">
+      <h2>1 · Building and deploying with Docker Compose</h2>
+      <p>You’re going to build and deploy the application using Docker Compose. In the folder <code>tripmeal_sujet</code> you should see a file named <em>docker-compose.yml</em>.</p>
+
+      <div class="infobox info">
+        <div class="callout-title">Exercise</div>
+        <div class="exercise">
+          <p><strong>Exercise 1.1</strong> — What is the file <em>docker-compose.yml</em> used for?</p>
+        </div>
+      </div>
+
+      <p>Look at the files and folders inside the folder <code>tripmeal_sujet</code>.</p>
+      <div class="infobox info">
+        <div class="callout-title">Exercise</div>
+        <div class="exercise">
+          <p><strong>Exercise 1.2</strong> — How many services does the application <em>TripMeal</em> have?</p>
+        </div>
+      </div>
+
+      <p>The <code>Dockerfile</code> in the directory <code>db</code> is already implemented. Open it and read the content to answer the following questions.</p>
+      <div class="infobox info">
+        <div class="callout-title">Exercise</div>
+        <div class="exercise">
+          <p><strong>Exercise 1.3</strong> — Which database management system (DBMS) is used in the <em>TripMeal</em> application?</p>
+        </div>
+      </div>
+
+      <div class="infobox info">
+        <div class="callout-title">Exercise</div>
+        <div class="exercise">
+          <p><strong>Exercise 1.4</strong> — What is the version (tag) of the image used for the DBMS of <em>TripMeal</em>? Find the documentation of the image and use it to answer.</p>
+        </div>
+      </div>
+
+      <div class="infobox info">
+        <div class="callout-title">Exercise</div>
+        <div class="exercise">
+          <p><strong>Exercise 1.5</strong> — Where does Docker get the base image for the DBMS from?</p>
+        </div>
+      </div>
+
+      <h3 id="dockerfile-web">1.1 · Dockerfile in folder <code>web</code></h3>
+      <p>If you open the folder <code>web</code>, you’ll see that the Dockerfile is empty.</p>
+      <div class="infobox good">
+        <div class="callout-title">Activity</div>
+        <p>Complete the <code>Dockerfile</code> in the directory <code>web</code>.</p>
+        <ul>
+          <li>You need a Python 3.7 environment to run the application.</li>
+          <li>The application consists of several files and folders. Include all of them into a Docker image.</li>
+          <li>Add the following instruction in your Dockerfile:</li>
+        </ul>
+        <pre><button class="copy-btn" aria-label="Copy command">Copy</button><code>RUN chmod -x path_to_file_app</code></pre>
+        <p>where <code>path_to_file_app</code> is the path to the file <code>app.py</code> <strong>inside the image</strong>. This will prevent an <code>Exec format error</code> from occurring.</p>
+      </div>
+
+      <p>Time to make sure that we can build an image from this Dockerfile and run a container from that image.</p>
+      <div class="infobox info">
+        <div class="callout-title">Exercise</div>
+        <div class="exercise">
+          <p><strong>Exercise 1.6</strong></p>
+          <ul>
+            <li>Build an image from the Dockerfile that you’ve just completed using <code>docker build</code>. Assume the image name is <code>web-test</code>.</li>
+            <li>Run a container from this image (run the command from the directory containing <code>tripmeal.env</code>):</li>
+          </ul>
+          <pre><button class="copy-btn" aria-label="Copy command">Copy</button><code>docker run --env-file tripmeal.env -p 3000:5000 web-test</code></pre>
+          <ul>
+            <li>Open a browser and go to <code>localhost:3000</code>. You should see the application UI. If not, stop the container and fix the Dockerfile.</li>
+            <li>Links such as <em>New recipe</em>, <em>All recipes</em>, <em>Weekly menu</em> and <em>Login</em> may fail to connect to the DB server — that’s expected for now.</li>
+          </ul>
+          <p>If the image passes the test, <strong>upload the Dockerfile to Edunao.</strong></p>
+        </div>
+      </div>
+
+      <h3 id="env-vars">1.2 · The environment variables</h3>
+      <p>When testing the image of the service <code>web</code>, you may have noticed that we passed the file <code>tripmeal.env</code> as an argument to <code>docker run</code>. This file contains <strong>environment variables</strong> used in the application. Open it and answer:</p>
+      <div class="infobox info">
+        <div class="callout-title">Exercise</div>
+        <div class="exercise">
+          <p><strong>Exercise 1.7</strong> — What does the environment variable <code>SERVER_PORT</code> refer to?</p>
+        </div>
+      </div>
+
+      <div class="infobox info">
+        <div class="callout-title">Exercise</div>
+        <div class="exercise">
+          <p><strong>Exercise 1.8</strong> — Which of the following sentences are true?</p>
+          <ol type="a">
+            <li>When you execute TripMeal, SERVER_PORT will be opened on the host computer interface.</li>
+            <li>When you execute TripMeal, SERVER_PORT will be opened on the network interface of a container.</li>
+            <li>To access the Web interface, map SERVER_PORT to a host port <code>p</code>; <code>p</code> will be opened on the host interface.</li>
+            <li>You can access the interface by typing <code>localhost:$SERVER_PORT</code> in your browser.</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="infobox info">
+        <div class="callout-title">Exercise</div>
+        <div class="exercise">
+          <p><strong>Exercise 1.9</strong> — When you write <code>docker-compose.yml</code>, you’ll need to give the database service a name. Which environment variable tells you the name that you must use?</p>
+        </div>
+      </div>
+
+      <h3 id="volumes-networks">1.3 · Volumes and networks</h3>
+      <p>The <em>TripMeal</em> application keeps user and recipe information in a database. Define a Docker <strong>volume</strong> to hold data.</p>
+      <div class="infobox info">
+        <div class="callout-title">Exercise</div>
+        <div class="exercise">
+          <p><strong>Exercise 1.10</strong> — Look at the DB base image documentation. Which directory inside the DB image will you attach the volume to?</p>
+        </div>
+      </div>
+
+      <p>The containers of <em>TripMeal</em> need to communicate through a Docker <strong>network</strong>.</p>
+      <div class="infobox info">
+        <div class="callout-title">Exercise</div>
+        <div class="exercise">
+          <p><strong>Exercise 1.11</strong> — If you don’t explicitly create any network, the containers will be able to communicate anyway. How do you explain it? <em>(You can answer after writing the Compose file and running the app.)</em></p>
+        </div>
+      </div>
+
+      <div class="infobox info">
+        <div class="callout-title">Exercise</div>
+        <div class="exercise">
+          <p><strong>Exercise 1.12</strong> — Why is not creating a network considered a bad idea, even if the application works?</p>
+        </div>
+      </div>
+
+      <h3 id="compose-file">1.4 · The compose file</h3>
+      <p>You’re finally ready to complete <code>docker-compose.yml</code>.</p>
+      <div class="infobox good">
+        <div class="callout-title">Activity</div>
+        <p>Write <code>docker-compose.yml</code>.</p>
+        <ul>
+          <li>Remember to pass the <strong>environment variables</strong> to your application.</li>
+          <li>As documentation, you can use:
+            <ul>
+              <li>The <a href="ia382_compose_petstore.html" target="_blank" rel="noopener noreferrer">examples seen together</a>.</li>
+              <li>The <a href="https://docs.docker.com/compose/" target="_blank" rel="noopener noreferrer">official Docker Compose overview</a>.</li>
+              <li>The <a href="https://github.com/compose-spec/compose-spec/blob/master/spec.md" target="_blank" rel="noopener noreferrer">full Compose specification</a>.</li>
+            </ul>
+          </li>
+          <li>Run and test the application (create an account, share a recipe, list recipes).</li>
+          <li>If you experience problems, <code>docker-compose logs</code> may help.</li>
+        </ul>
+      </div>
+
+      <p>If you successfully deployed the application, you can continue.</p>
+      <div class="infobox warning">
+        <div class="callout-title">Shut down the application!</div>
+        <p>Shut down the application before you move on.</p>
+      </div>
+
+      <div class="infobox info">
+        <div class="callout-title">Exercise</div>
+        <div class="exercise">
+          <p><strong>Exercise 1.13</strong> — <u>Use Docker Compose</u> to push all the images built in this section to your DockerHub registry.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="local-k8s" class="section">
+      <h2>2 · Local Kubernetes cluster</h2>
+      <p>We intend to deploy <em>TripMeal</em> on a <strong>local Kubernetes cluster</strong> (either Docker Desktop or Minikube).</p>
+
+      <div class="infobox info">
+        <div class="callout-title">Exercise</div>
+        <div class="exercise">
+          <p><strong>Exercise 2.1</strong> — For each service of <em>TripMeal</em>, specify the Kubernetes objects you need to create and their types. Justify your answers.</p>
+        </div>
+      </div>
+
+      <div class="infobox warning">
+        <div class="callout-title">Help</div>
+        <p>To write each object spec, refer to the examples discussed in the second tutorial and to the
+        <a href="https://kubernetes.io/docs/reference/kubernetes-api/" target="_blank" rel="noopener noreferrer">Kubernetes API documentation</a>.</p>
+      </div>
+
+      <div class="infobox good">
+        <div class="callout-title">Activity</div>
+        <p>For each Kubernetes object:</p>
+        <ol>
+          <li><strong>Configure.</strong> Write a YAML configuration file. Remember to pass the environment variables to the application.</li>
+          <li><strong>Create.</strong> Create the object in Kubernetes with <code>kubectl</code>.</li>
+          <li><strong>Analyze.</strong> Run <code>kubectl get all</code> to confirm components run as intended.</li>
+          <li><strong>Test.</strong> Use the application to confirm it works as intended.</li>
+        </ol>
+        <p><strong>In case of problems.</strong> View pod logs with: <code>kubectl logs NAME-OF-POD --previous</code></p>
+      </div>
+
+      <div class="infobox warning">
+        <div class="callout-title">Shut down the application!</div>
+        <p>Shut down the application by removing all the Kubernetes objects.</p>
+      </div>
+
+      <div class="infobox info">
+        <div class="callout-title">Exercise</div>
+        <div class="exercise">
+          <p><strong>Exercise 2.2</strong> — Create a new file called <code>tripmeal.yml</code> with the definition of all the Kubernetes objects of the application.</p>
+        </div>
+      </div>
+    </section>
+  
+      <div class="pager">
+        <a href="ia382_compose_petstore.html" aria-label="Previous tutorial">
+          <div><small>← Previous</small><div>03 · Compose & Kubernetes: Pet Store</div></div>
+        </a>
+        <a href="index.html" aria-label="Index">
+          <div><small>Index →</small><div>Return to Index</div></div>
+        </a>
+      </div>
+    </main>
+  </div>
+
+
+  <footer>
+    <p>© <span id="year"></span> FEEC/UNICAMP · IA382 Practical Tutorials · Developed by: AI and Fernando Santiago</p>
+  </footer>
+
+  <script>
+    // Theme init using saved or system preference
+    (function initTheme(){
+      const root = document.documentElement;
+      const saved = localStorage.getItem('theme');
+      if (saved === 'light' || saved === 'dark') {
+        root.setAttribute('data-theme', saved);
+      } else {
+        const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+        root.setAttribute('data-theme', prefersLight ? 'light' : 'dark');
+      }
+      const btn = document.getElementById('theme-toggle');
+      const isLight = root.getAttribute('data-theme') === 'light';
+      btn.textContent = isLight ? '🌙 Dark' : '☀️ Light';
+    })();
+
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+      const root = document.documentElement;
+      const current = root.getAttribute('data-theme');
+      const next = current === 'light' ? 'dark' : 'light';
+      root.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      document.getElementById('theme-toggle').textContent = next === 'light' ? '🌙 Dark' : '☀️ Light';
+    });
+
+    // Copy buttons (delegated)
+    document.addEventListener('click', async (ev) => {
+      const btn = ev.target.closest('.copy-btn'); if (!btn) return;
+      const pre = btn.parentElement; const code = pre.querySelector('code'); if (!code) return;
+      try {
+        await navigator.clipboard.writeText(code.innerText);
+        const old = btn.textContent; 
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied'); // <-- Added class for visual feedback
+        setTimeout(()=>{
+          btn.textContent=old;
+          btn.classList.remove('copied'); // <-- Remove class
+        }, 1200);
+      } catch (e) { console.error(e); }
+    });
+
+    // Year
+    document.getElementById('year').textContent = new Date().getFullYear();
+  
+    // ====== TOC generator + Scroll Spy ======
+    (function makeTOC(){
+      const toc = document.getElementById('toc-list');
+      const content = document.getElementById('content');
+      if(!toc || !content) return;
+      function slug(s){ return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''); }
+      const headings = content.querySelectorAll('h2, h3');
+      const links = [];
+      headings.forEach(h => {
+        if(!h.id){ h.id = slug(h.textContent); }
+        const a = document.createElement('a');
+        a.href = '#'+h.id; a.textContent = h.textContent;
+        a.dataset.target = h.id;
+        toc.appendChild(a);
+        links.push(a); // Push to new array
+      });
+      // const links = Array.from(toc.querySelectorAll('a')); // Original
+      const map = new Map(links.map(a => [a.dataset.target, a]));
+      const obs = new IntersectionObserver(entries => {
+        let lastActive = null; // Track the last one that is intersecting
+        entries.forEach(e => {
+          const id = e.target.id;
+          const link = map.get(id);
+          if(!link) return;
+          if(e.isIntersecting){
+            link.classList.add('active');
+            lastActive = link;
+          } else {
+            link.classList.remove('active');
+          }
+        });
+        // De-activate all, then re-activate only the last one found
+        if(lastActive) {
+          links.forEach(l => l.classList.remove('active'));
+          lastActive.classList.add('active');
+        }
+      }, { rootMargin: '0px 0px -70% 0px', threshold: 0.1 });
+      headings.forEach(h => obs.observe(h));
+    })();
+    
+    // ====== Scroll Progress Bar ======
+    (function setupProgressBar() {
+      // Inject the bar element via JS
+      const bar = document.createElement('div');
+      bar.className = 'progress-bar';
+      const nav = document.querySelector('.navbar');
+      if(nav) nav.appendChild(bar);
+      
+      window.addEventListener('scroll', () => {
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        const percent = (window.scrollY / max) * 100;
+        bar.style.width = percent + '%';
+      }, { passive: true });
+    })();
+    
+    // ====== Scroll Animations ======
+    (function scrollAnimate() {
+      const targets = document.querySelectorAll('.exercise, .infobox, .pager a, .section > ul, .section > p');
+      if (!('IntersectionObserver' in window)) return; // Fail gracefully
+      
+      const obs = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('in-view');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+      
+      targets.forEach(t => {
+        t.classList.add('animate-on-scroll');
+        obs.observe(t);
+      });
+    })();
+
+  </script>
+</body>
+</html>
