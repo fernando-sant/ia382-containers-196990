@@ -868,58 +868,26 @@ kubectl delete statefulset/db</code></pre></div>
       }catch(e){console.error(e);}
     });
 
-// ====== TOC generator + Scroll Spy (COM CORREÇÃO DE CLIQUE) ======
+    // ====== TOC generator + Scroll Spy ======
     (function makeTOC(){
       const toc = document.getElementById('toc-list');
       const content = document.getElementById('content');
-      if(!toc || !content) return;
-
+      if(!toc || !content) return; // Added guard
       function slug(s){ return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''); }
-      
-      // VARIÁVEL DE CONTROLO (A CORREÇÃO)
-      let isManualScroll = false;
-      let scrollTimeout;
-
       const headings = content.querySelectorAll('h2, h3');
-      const links = [];
-      
+      const links = []; // Store links for spy
       headings.forEach(h => {
         if(!h.id){ h.id = slug(h.textContent); }
         const a = document.createElement('a');
-        a.href = '#'+h.id;
-        a.textContent = h.tagName === 'H2' ? h.textContent : '— ' + h.textContent; // Ou sua lógica de H3
+        a.href = '#'+h.id; a.textContent = h.textContent;
         a.dataset.target = h.id;
-        
-        // --- LÓGICA DO CLIQUE ---
-        a.addEventListener('click', (e) => {
-          // 1. Avisa o sistema que é um scroll manual
-          isManualScroll = true;
-          
-          // 2. Força visualmente este link a ficar ativo imediatamente
-          links.forEach(l => l.classList.remove('active'));
-          a.classList.add('active');
-          
-          // 3. Limpa timeout anterior se houver
-          if(scrollTimeout) clearTimeout(scrollTimeout);
-
-          // 4. Reativa o espião daqui a 1 segundo (tempo suficiente para o scroll terminar)
-          scrollTimeout = setTimeout(() => {
-            isManualScroll = false;
-          }, 1000);
-        });
-        // -------------------------
-
         toc.appendChild(a);
-        links.push(a);
+        links.push(a); // Add to array
       });
-      
+      // Scroll spy
       const map = new Map(links.map(a => [a.dataset.target, a]));
-      
       const obs = new IntersectionObserver(entries => {
-        // SE FOR SCROLL MANUAL, O ESPIÃO NÃO FAZ NADA
-        if (isManualScroll) return;
-
-        let lastActive = null; 
+        let lastActive = null; // Track the last one that is intersecting
         entries.forEach(e => {
           const id = e.target.id;
           const link = map.get(id);
@@ -931,19 +899,12 @@ kubectl delete statefulset/db</code></pre></div>
             link.classList.remove('active');
           }
         });
-        
+        // De-activate all, then re-activate only the last one found
         if(lastActive) {
           links.forEach(l => l.classList.remove('active'));
           lastActive.classList.add('active');
-          
-          lastActive.scrollIntoView({
-            behavior: 'smooth',
-            block: 'nearest', 
-            inline: 'nearest'
-          });
         }
       }, { rootMargin: '0px 0px -70% 0px', threshold: 0.1 });
-      
       headings.forEach(h => obs.observe(h));
     })();
     
