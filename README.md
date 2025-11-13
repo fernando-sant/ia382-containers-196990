@@ -122,7 +122,6 @@ ia382-containers-196990/
 ├─ ia382_running_containers.html
 ├─ ia382_compose_petstore.html
 ├─ ia382_tripmeal.html
-├─ ia382_quiz.html
 └─ activities_files/
    ├─ pet-store.zip
    ├─ tripmeal.zip
