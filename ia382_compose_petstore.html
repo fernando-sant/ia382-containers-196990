@@ -868,13 +868,18 @@ kubectl delete statefulset/db</code></pre></div>
       }catch(e){console.error(e);}
     });
 
-    // ====== TOC generator + Scroll Spy (Replaced with robust version) ======
-// ====== TOC generator + Scroll Spy (COM SCROLL AUTOMÁTICO) ======
+// ====== TOC generator + Scroll Spy (COM CORREÇÃO DE CLIQUE) ======
     (function makeTOC(){
       const toc = document.getElementById('toc-list');
       const content = document.getElementById('content');
       if(!toc || !content) return;
+
       function slug(s){ return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''); }
+      
+      // VARIÁVEL DE CONTROLO (A CORREÇÃO)
+      let isManualScroll = false;
+      let scrollTimeout;
+
       const headings = content.querySelectorAll('h2, h3');
       const links = [];
       
@@ -882,15 +887,38 @@ kubectl delete statefulset/db</code></pre></div>
         if(!h.id){ h.id = slug(h.textContent); }
         const a = document.createElement('a');
         a.href = '#'+h.id;
-        // Lógica para indentar H3 (se existir)
-        a.textContent = h.tagName === 'H2' ? h.textContent : '— ' + h.textContent;
+        a.textContent = h.tagName === 'H2' ? h.textContent : '— ' + h.textContent; // Ou sua lógica de H3
         a.dataset.target = h.id;
+        
+        // --- LÓGICA DO CLIQUE ---
+        a.addEventListener('click', (e) => {
+          // 1. Avisa o sistema que é um scroll manual
+          isManualScroll = true;
+          
+          // 2. Força visualmente este link a ficar ativo imediatamente
+          links.forEach(l => l.classList.remove('active'));
+          a.classList.add('active');
+          
+          // 3. Limpa timeout anterior se houver
+          if(scrollTimeout) clearTimeout(scrollTimeout);
+
+          // 4. Reativa o espião daqui a 1 segundo (tempo suficiente para o scroll terminar)
+          scrollTimeout = setTimeout(() => {
+            isManualScroll = false;
+          }, 1000);
+        });
+        // -------------------------
+
         toc.appendChild(a);
         links.push(a);
       });
       
       const map = new Map(links.map(a => [a.dataset.target, a]));
+      
       const obs = new IntersectionObserver(entries => {
+        // SE FOR SCROLL MANUAL, O ESPIÃO NÃO FAZ NADA
+        if (isManualScroll) return;
+
         let lastActive = null; 
         entries.forEach(e => {
           const id = e.target.id;
@@ -908,16 +936,14 @@ kubectl delete statefulset/db</code></pre></div>
           links.forEach(l => l.classList.remove('active'));
           lastActive.classList.add('active');
           
-          // --- ADIÇÃO PRINCIPAL ---
-          // Isto faz o scroll automático do TOC para manter o link ativo visível
           lastActive.scrollIntoView({
-            behavior: 'smooth', // Rolagem suave
-            block: 'nearest',   // Rola o mínimo possível para o item aparecer
+            behavior: 'smooth',
+            block: 'nearest', 
             inline: 'nearest'
           });
-          // --- FIM DA ADIÇÃO ---
         }
       }, { rootMargin: '0px 0px -70% 0px', threshold: 0.1 });
+      
       headings.forEach(h => obs.observe(h));
     })();
     
